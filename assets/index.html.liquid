@@ -1,0 +1,9 @@
+<html>
+  <head>
+    <title>What time is it?</title>
+    <script type="text/javascript" src="{% asset_package "application.js" %}"></script>
+  </head>
+  <body>
+    <h1>It is {{ now | date: "%A, %B %e %Y, %I:%M:%S %p %Z" }}</h1>
+  </body>
+</html>

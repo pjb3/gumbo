@@ -1,0 +1,12 @@
+js:
+  application:
+    - foo.coffee
+    - bar.coffee
+
+  fancy:
+    - foo.coffee
+
+css:
+  application:
+    - bar.css
+    - foo.css
