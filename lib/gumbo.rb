@@ -1,23 +1,12 @@
-require "logger"
-
-module Gumbo
-  def self.logger
-    @logger ||= begin
-      logger = Logger.new(STDOUT)
-      logger.formatter = proc do |severity, datetime, progname, msg|
-        "#{msg}\n"
-      end
-      logger
-    end
-  end
-
-  def self.logger=(logger)
-    @logger = logger
-  end
-end
-
 require "gumbo/version"
+require "gumbo/logger"
 require "gumbo/asset_builder"
 require "gumbo/asset_file"
 require "gumbo/asset_package"
+require "gumbo/package_file"
+require "gumbo/java_script_file"
+require "gumbo/style_sheet_file"
+require "gumbo/compile_to_java_script_file"
 require "gumbo/coffee_script_file"
+require "gumbo/template_file"
+require "gumbo/liquid_file"

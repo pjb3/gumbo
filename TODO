@@ -1,0 +1,3 @@
+* non-css, non-js
+* liquid rendering
+* write the asset_manifest.json to the public dir
