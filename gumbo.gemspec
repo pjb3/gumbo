@@ -1,6 +1,4 @@
 # -*- encoding: utf-8 -*-
-require File.expand_path('../lib/gumbo/version', __FILE__)
-
 Gem::Specification.new do |gem|
   gem.authors       = ["Paul Barry"]
   gem.email         = ["mail@paulbarry.com"]
@@ -13,7 +11,7 @@ Gem::Specification.new do |gem|
   gem.test_files    = gem.files.grep(%r{^(test|spec|features)/})
   gem.name          = "gumbo"
   gem.require_paths = ["lib"]
-  gem.version       = Gumbo::VERSION
+  gem.version       = "0.0.1"
 
   gem.add_runtime_dependency "coffee-script", "~> 2.2.0"
   gem.add_runtime_dependency "liquid", "~> 2.4.1"

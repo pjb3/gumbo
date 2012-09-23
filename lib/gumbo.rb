@@ -1,4 +1,3 @@
-require "gumbo/version"
 require "gumbo/logger"
 require "gumbo/asset_builder"
 require "gumbo/asset_file"
