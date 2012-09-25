@@ -2,4 +2,4 @@
 
 require "gumbo"
 
-Gumbo::AssetBuilder.new.build
+Gumbo::CLI.run(ARGV)

@@ -1,3 +1,4 @@
+require 'fileutils'
 require 'json'
 require 'set'
 require 'time'
@@ -10,7 +11,11 @@ module Gumbo
     DEFAULT_PACKAGES_FILE = "packages.yml"
     DEFAULT_MANIFEST_FILE = "packages.json"
 
-    attr_accessor :source_dir, :output_dir, :packages_file, :manifest_file
+    attr_accessor :source_dir, :output_dir, :packages_file, :manifest_file, :clean
+
+    def self.build(attrs={})
+      new(attrs).build
+    end
 
     def initialize(attrs={})
       attrs.each do |k,v|
@@ -23,12 +28,17 @@ module Gumbo
     end
 
     def build
+      clean_output_dir if clean
       build_package_files
       build_packages
       build_non_package_files
     end
 
     protected
+
+    def clean_output_dir
+      FileUtils.rm_r(output_dir)
+    end
 
     def build_package_files
       file_packages.each do |file, packages|
@@ -59,13 +69,16 @@ module Gumbo
     def build_non_package_files
       Dir["#{source_dir}/**/*"].each do |file|
         unless File.directory?(file) || file == packages_file || package_files.include?(file)
-          AssetFile.build(
+          asset_file = AssetFile.for(
             :name => file.split('/').drop(1).join('/'),
             :source_dir => source_dir,
             :output_dir => output_dir,
             :context => {
               "asset_packages" => asset_packages
             })
+          if !packages_to_rebuild.empty? || asset_file.should_be_rebuilt?
+            asset_file.build
+          end
         end
       end
     end

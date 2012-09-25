@@ -5,10 +5,6 @@ module Gumbo
     attr_accessor :source_dir, :output_dir, :name, :context
     include FileUtils
 
-    def self.build(attrs={})
-      self.for(attrs).build
-    end
-
     def self.for(attrs={})
       class_for(attrs[:name]).new(attrs)
     end
