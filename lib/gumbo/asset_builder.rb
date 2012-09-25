@@ -18,17 +18,16 @@ module Gumbo
     end
 
     def initialize(attrs={})
-      attrs.each do |k,v|
-        send("#{k}=", v)
-      end
-      self.source_dir ||= DEFAULT_SOURCE_DIR
-      self.output_dir ||= DEFAULT_OUTPUT_DIR
-      self.packages_file ||= File.join(source_dir, DEFAULT_PACKAGES_FILE)
-      self.manifest_file ||= File.join(output_dir, DEFAULT_MANIFEST_FILE)
+      self.clean = !!attrs[:clean]
+      self.source_dir = attrs.fetch(:source_dir, DEFAULT_SOURCE_DIR)
+      self.output_dir = attrs.fetch(:output_dir, DEFAULT_OUTPUT_DIR)
+      self.packages_file = File.join(source_dir, attrs.fetch(:packages_file, DEFAULT_PACKAGES_FILE))
+      self.manifest_file = File.join(output_dir, attrs.fetch(:manifest_file, DEFAULT_MANIFEST_FILE))
     end
 
     def build
       clean_output_dir if clean
+      create_output_dir
       build_package_files
       build_packages
       build_non_package_files
@@ -37,7 +36,11 @@ module Gumbo
     protected
 
     def clean_output_dir
-      FileUtils.rm_r(output_dir)
+      FileUtils.rm_r(output_dir) if File.exists?(output_dir)
+    end
+
+    def create_output_dir
+      FileUtils.mkdir_p(output_dir)
     end
 
     def build_package_files
@@ -70,7 +73,7 @@ module Gumbo
       Dir["#{source_dir}/**/*"].each do |file|
         unless File.directory?(file) || file == packages_file || package_files.include?(file)
           asset_file = AssetFile.for(
-            :name => file.split('/').drop(1).join('/'),
+            :name => file.sub(/^#{source_dir}\//, ''),
             :source_dir => source_dir,
             :output_dir => output_dir,
             :context => {
@@ -102,7 +105,7 @@ module Gumbo
     #   }
     def asset_packages
       @asset_packages ||= if File.exists?(manifest_file)
-        JSON.parse(File.read(manifest_file))
+        parse_file(manifest_file)
       else
         {}
       end
@@ -111,7 +114,7 @@ module Gumbo
     # The definition of which files are in each package
     # as parsed from the packages_file
     def package_definitions
-      @package_definitions ||= YAML.load_file(packages_file)
+      @package_definitions ||= parse_file(packages_file)
     end
 
     # Given a package_type and package_name, this will return
@@ -152,6 +155,14 @@ module Gumbo
 
     def logger
       Gumbo.logger
+    end
+
+    def parse_file(file)
+      case File.extname(file)
+      when '.yml', '.yaml' then YAML.load_file(file)
+      when '.json' then JSON.parse(File.read(file))
+      else raise "Unknown file type: #{file}"
+      end
     end
 
   end
