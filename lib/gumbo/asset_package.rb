@@ -14,8 +14,12 @@ module Gumbo
       @files ||= Set.new
     end
 
+    def file_name
+      @file_name ||= "#{name}-#{digest}.#{type}"
+    end
+
     def output_file
-      @output_file ||= File.join(output_dir, "#{name}-#{digest}.#{type}")
+      @output_file ||= File.join(output_dir, file_name)
     end
 
     def build

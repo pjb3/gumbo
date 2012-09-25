@@ -1,3 +1,4 @@
+require 'json'
 require 'set'
 require 'time'
 require 'yaml'
@@ -7,8 +8,9 @@ module Gumbo
     DEFAULT_SOURCE_DIR = "assets"
     DEFAULT_OUTPUT_DIR = "public"
     DEFAULT_PACKAGES_FILE = "packages.yml"
+    DEFAULT_MANIFEST_FILE = "packages.json"
 
-    attr_accessor :source_dir, :output_dir, :packages_file
+    attr_accessor :source_dir, :output_dir, :packages_file, :manifest_file
 
     def initialize(attrs={})
       attrs.each do |k,v|
@@ -17,12 +19,18 @@ module Gumbo
       self.source_dir ||= DEFAULT_SOURCE_DIR
       self.output_dir ||= DEFAULT_OUTPUT_DIR
       self.packages_file ||= File.join(source_dir, DEFAULT_PACKAGES_FILE)
+      self.manifest_file ||= File.join(output_dir, DEFAULT_MANIFEST_FILE)
     end
 
     def build
-      packages_to_rebuild = Set.new
-      package_files = Set.new
+      build_package_files
+      build_packages
+      build_non_package_files
+    end
 
+    protected
+
+    def build_package_files
       file_packages.each do |file, packages|
         package_files << file.source_file
         if file.should_be_rebuilt?
@@ -30,13 +38,25 @@ module Gumbo
           packages.each{|p| packages_to_rebuild << p }
         end
       end
+    end
 
-      packages_to_rebuild.each(&:build)
+    def build_packages
+      unless packages_to_rebuild.empty?
+        packages_to_rebuild.each do |package|
+          package.build
+          asset_packages[package.type] ||= {}
+          asset_packages[package.type][package.name] = package.file_name
+        end
 
-      # This needs to be a mapping of package name to package file
-      asset_packages = {}
+        new_manifest = File.exists?(manifest_file)
+        open(manifest_file, "w") do |f|
+          f << JSON.pretty_generate(asset_packages)
+          logger.info "#{new_manifest ? 'Created' : 'Updated'} #{manifest_file}"
+        end
+      end
+    end
 
-      # non-css, non-js assets, including liquid
+    def build_non_package_files
       Dir["#{source_dir}/**/*"].each do |file|
         unless File.directory?(file) || file == packages_file || package_files.include?(file)
           AssetFile.build(
@@ -44,17 +64,47 @@ module Gumbo
             :source_dir => source_dir,
             :output_dir => output_dir,
             :context => {
-              "now" => Time.now,
               "asset_packages" => asset_packages
             })
         end
       end
     end
 
-    def package_manifests
-      @package_manifests ||= YAML.load_file(packages_file)
+    # A Set of AssetPackage objects which need to be rebuilt
+    def packages_to_rebuild
+      @packages_to_rebuild ||= Set.new
     end
 
+    # A Set of file names of all files that are part of at least one package
+    def package_files
+      @package_files ||= Set.new
+    end
+
+    # A Hash of package types to Hashes of package names to package file
+    # Example:
+    #   {
+    #     "js" => {
+    #       "foo" => "foo-cff07015305f5bc4ffc30a216a676df2.js"
+    #     }
+    #   }
+    def asset_packages
+      @asset_packages ||= if File.exists?(manifest_file)
+        JSON.parse(File.read(manifest_file))
+      else
+        {}
+      end
+    end
+
+    # The definition of which files are in each package
+    # as parsed from the packages_file
+    def package_definitions
+      @package_definitions ||= YAML.load_file(packages_file)
+    end
+
+    # Given a package_type and package_name, this will return
+    # the AssetPackage object representing those values,
+    # returning the same object on successive calls for the same
+    # package_type and package_name
     def get_package_for(output_dir, package_type, package_name)
       @packages ||= {}
       @packages[package_type] ||= {}
@@ -64,9 +114,11 @@ module Gumbo
         :name => package_name)
     end
 
+    # A Hash of AssetFile to an Array of AssetPackage objects,
+    # representing the AssetPackages that an AssetFile belongs to
     def file_packages
-      @file_packages ||= package_manifests.inject({}) do |file_packages, (package_type, package_manifests)|
-        package_manifests.each do |package_name, file_names|
+      @file_packages ||= package_definitions.inject({}) do |file_packages, (package_type, package_definitions)|
+        package_definitions.each do |package_name, file_names|
           package = get_package_for(output_dir, package_type, package_name)
           file_names.each do |file_name|
             file = AssetFile.for(
@@ -81,6 +133,12 @@ module Gumbo
         end
         file_packages
       end
+    end
+
+    private
+
+    def logger
+      Gumbo.logger
     end
 
   end
