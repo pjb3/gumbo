@@ -2,9 +2,9 @@
 Gem::Specification.new do |gem|
   gem.authors       = ["Paul Barry"]
   gem.email         = ["mail@paulbarry.com"]
-  gem.description   = %q{TODO: Write a gem description}
-  gem.summary       = %q{TODO: Write a gem summary}
-  gem.homepage      = ""
+  gem.description   = %q{A standalone asset packager}
+  gem.summary       = %q{A standalone asset packager}
+  gem.homepage      = "http://github.com/pjb3/gumbo"
 
   gem.files         = `git ls-files`.split($\)
   gem.executables   = gem.files.grep(%r{^bin/}).map{ |f| File.basename(f) }
