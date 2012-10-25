@@ -5,7 +5,7 @@ module Gumbo
     ext ".eco"
 
     def compile(src)
-      "JST['#{name.sub(/.eco$/,'')}'] = #{Eco.compile(src)};"
+      "this.JST || (this.JST = {}); this.JST['#{name.sub(/.eco$/,'')}'] = #{Eco.compile(src)};"
     end
   end
 end

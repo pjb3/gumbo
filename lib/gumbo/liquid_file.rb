@@ -13,13 +13,16 @@ module Gumbo
     end
 
     class AssetPackageTag < Liquid::Tag
-      def initialize(tag_name, max, tokens)
+      def initialize(tag_name, file_name, tokens)
          super
-         @max = max.to_i
+         @file_name = file_name
       end
 
       def render(context)
-        "TODO"
+        parts = @file_name.split('.')
+        ext = parts.pop.strip
+        name = parts.join('.')
+        context["asset_packages"][ext][name]
       end
     end
 
