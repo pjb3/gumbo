@@ -1,5 +1,6 @@
 require 'digest/md5'
-require 'yui/compressor'
+require 'cssmin'
+require 'uglifier'
 
 module Gumbo
   class AssetPackage
@@ -42,15 +43,14 @@ module Gumbo
     end
 
     def compress(out)
-      compressor = case type
+      case type
       when 'css'
-        compressor = YUI::CssCompressor.new
+        CSSMin.minify(out)
       when 'js'
-        compressor = YUI::JavaScriptCompressor.new(:munge => true)
+        Uglifier.compile(out, :mangle => true)
       else
         raise "Unknown package type '#{type}'"
       end
-      compressor.compress(out)
     end
 
     def eql?(o)

@@ -14,6 +14,7 @@ Gem::Specification.new do |gem|
   gem.version       = "0.0.1"
 
   gem.add_runtime_dependency "coffee-script", "~> 2.2.0"
+  gem.add_runtime_dependency "cssmin"
   gem.add_runtime_dependency "liquid", "~> 2.4.1"
-  gem.add_runtime_dependency "ruby-yui-compressor"
+  gem.add_runtime_dependency "uglifier"
 end
