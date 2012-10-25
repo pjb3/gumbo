@@ -137,7 +137,7 @@ module Gumbo
         package_definitions.each do |package_name, file_names|
           package = get_package_for(output_dir, package_type, package_name)
           file_names.each do |file_name|
-            file = AssetFile.for(
+            file = PackageFile.for(
               :source_dir => source_dir,
               :output_dir => output_dir,
               :type => package_type,

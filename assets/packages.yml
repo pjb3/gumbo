@@ -5,6 +5,7 @@ js:
 
   fancy:
     - foo.coffee
+    - templates/home.eco
 
 css:
   application:
