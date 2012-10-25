@@ -15,4 +15,5 @@ Gem::Specification.new do |gem|
 
   gem.add_runtime_dependency "coffee-script", "~> 2.2.0"
   gem.add_runtime_dependency "liquid", "~> 2.4.1"
+  gem.add_runtime_dependency "ruby-yui-compressor"
 end

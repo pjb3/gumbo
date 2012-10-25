@@ -1,4 +1,5 @@
 require 'digest/md5'
+require 'yui/compressor'
 
 module Gumbo
   class AssetPackage
@@ -29,6 +30,8 @@ module Gumbo
         out << "\n"
       end
 
+      out = compress(out)
+
       self.digest = Digest::MD5.hexdigest(out)
 
       open(output_file, 'w') do |f|
@@ -36,6 +39,18 @@ module Gumbo
       end
 
       logger.info "Created package #{output_file}"
+    end
+
+    def compress(out)
+      compressor = case type
+      when 'css'
+        compressor = YUI::CssCompressor.new
+      when 'js'
+        compressor = YUI::JavaScriptCompressor.new(:munge => true)
+      else
+        raise "Unknown package type '#{type}'"
+      end
+      compressor.compress(out)
     end
 
     def eql?(o)
