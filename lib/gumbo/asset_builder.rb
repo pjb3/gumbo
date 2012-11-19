@@ -30,7 +30,7 @@ module Gumbo
       create_output_dir
       build_package_files
       build_packages
-      build_non_package_files
+      #build_non_package_files
     end
 
     protected
