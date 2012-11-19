@@ -1,7 +1,7 @@
 js:
   todo:
     - todo.coffee
-    - templates/todo.eco
+    - templates/**/*
 
 css:
   todo:

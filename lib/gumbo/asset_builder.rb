@@ -36,7 +36,12 @@ module Gumbo
     protected
 
     def clean_output_dir
-      FileUtils.rm_r(output_dir) if File.exists?(output_dir)
+      if File.exists?(output_dir)
+        puts "Removing output directory #{File.expand_path(output_dir)}..."
+        FileUtils.rm_r(output_dir)
+      else
+        puts "Output directory #{File.expand_path(output_dir)} does not exist"
+      end
     end
 
     def create_output_dir
@@ -134,17 +139,21 @@ module Gumbo
     # representing the AssetPackages that an AssetFile belongs to
     def file_packages
       @file_packages ||= package_definitions.inject({}) do |file_packages, (package_type, package_definitions)|
-        package_definitions.each do |package_name, file_names|
+        package_definitions.each do |package_name, file_patterns|
           package = get_package_for(output_dir, package_type, package_name)
-          file_names.each do |file_name|
-            file = PackageFile.for(
-              :source_dir => source_dir,
-              :output_dir => output_dir,
-              :type => package_type,
-              :name => file_name)
-            file_packages[file] ||= []
-            file_packages[file] << package
-            package.files << file
+          file_patterns.each do |file_pattern|
+            full_file_pattern = File.expand_path(File.join(package_type, file_pattern), source_dir)
+            Dir[full_file_pattern].each do |file_path|
+              file_name = file_path.sub(/^#{File.expand_path(source_dir)}\//,'').sub(/^#{package_type}\//,'')
+              file = PackageFile.for(
+                :source_dir => source_dir,
+                :output_dir => output_dir,
+                :type => package_type,
+                :name => file_name)
+              file_packages[file] ||= []
+              file_packages[file] << package
+              package.files << file
+            end
           end
         end
         file_packages
